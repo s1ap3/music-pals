@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Music Pals: Learn Music Theory!</title>
+<style>
+  :root{
+    --sky:#bfe9ff; --grass:#8fdc6a; --sun:#ffd23f; --pink:#ff7eb6; --purple:#9b6bff;
+    --blue:#3fa7ff; --orange:#ff9f43; --green:#2ecc71; --red:#ff5e5e; --ink:#2b2350;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    font-family:"Baloo 2","Comic Sans MS","Chalkboard SE","Trebuchet MS",sans-serif;
+    color:var(--ink);
+    background:linear-gradient(#bfe9ff 0%,#e6f7ff 65%,#8fdc6a 65%,#6cc24a 100%);
+    min-height:100vh;overflow-x:hidden;
+  }
+  .cloud{position:fixed;background:#fff;border-radius:50px;opacity:.9;z-index:0;animation:drift 40s linear infinite}
+  .cloud::before,.cloud::after{content:"";position:absolute;background:#fff;border-radius:50%}
+  .cloud::before{width:60%;height:140%;left:15%;top:-60%}
+  .cloud::after{width:40%;height:110%;right:10%;top:-40%}
+  @keyframes drift{from{transform:translateX(-30vw)}to{transform:translateX(130vw)}}
+  #app{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:16px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  h1{margin:0;font-size:clamp(26px,6vw,44px);letter-spacing:1px;
+     background:linear-gradient(90deg,var(--pink),var(--orange),var(--sun),var(--green),var(--blue),var(--purple));
+     -webkit-background-clip:text;background-clip:text;color:transparent;
+     text-shadow:0 3px 0 rgba(255,255,255,.6)}
+  .stars{background:#fff;border-radius:999px;padding:6px 14px;font-size:22px;font-weight:bold;box-shadow:0 4px 0 #d9c9ff}
+  .card{background:#fff;border-radius:28px;padding:18px;box-shadow:0 8px 0 rgba(43,35,80,.15);margin-top:14px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-top:14px}
+  .mode{border:none;border-radius:24px;padding:16px;font:inherit;cursor:pointer;text-align:left;color:#fff;
+        box-shadow:0 7px 0 rgba(0,0,0,.18);transition:transform .12s}
+  .mode:hover{transform:translateY(-3px) rotate(-1deg)}
+  .mode:active{transform:translateY(3px)}
+  .mode .big{font-size:40px;line-height:1}
+  .mode .t{font-size:22px;font-weight:bold;margin-top:6px}
+  .mode .d{font-size:15px;opacity:.95}
+  .mode .best{font-size:14px;margin-top:6px;background:rgba(255,255,255,.25);display:inline-block;padding:2px 10px;border-radius:999px}
+  .btn{border:none;border-radius:18px;padding:12px 18px;font:inherit;font-size:22px;font-weight:bold;cursor:pointer;
+       color:#fff;background:var(--blue);box-shadow:0 6px 0 rgba(0,0,0,.2);margin:5px;min-width:64px;transition:transform .1s}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.2)}
+  .btn.small{font-size:16px;padding:8px 14px}
+  .btn.ghost{background:#efe8ff;color:var(--ink)}
+  .btn.right{background:var(--green)!important}
+  .btn.wrong{background:var(--red)!important;animation:shake .35s}
+  @keyframes shake{25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .answers{display:flex;flex-wrap:wrap;justify-content:center;margin-top:8px}
+  .q{font-size:24px;font-weight:bold;text-align:center;margin:6px 0}
+  .tip{background:#fff7d6;border-radius:18px;padding:10px 14px;font-size:17px;margin-top:10px;text-align:center;min-height:24px}
+  .bar{height:16px;background:#efe8ff;border-radius:999px;overflow:hidden;margin:6px 0 10px}
+  .bar>div{height:100%;background:linear-gradient(90deg,var(--pink),var(--sun),var(--green));transition:width .3s}
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .center{display:flex;justify-content:center}
+  svg{max-width:100%}
+  .piano{position:relative;width:min(100%,490px);height:180px;margin:10px auto;user-select:none}
+  .wk{position:absolute;top:0;height:100%;background:#fff;border:3px solid var(--ink);border-radius:0 0 14px 14px;cursor:pointer;
+      display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;font-weight:bold;font-size:18px}
+  .bk{position:absolute;top:0;height:60%;background:var(--ink);border-radius:0 0 10px 10px;cursor:pointer;z-index:2;
+      display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;color:#fff;font-size:12px}
+  .wk.right,.bk.right{background:var(--green)}
+  .wk.wrong,.bk.wrong{background:var(--red)}
+  .mascot{width:90px;height:110px;flex:none}
+  .mascot.happy{animation:bounce .6s}
+  .mascot.sad{animation:wobble .6s}
+  @keyframes bounce{30%{transform:translateY(-22px) scale(1.05)}60%{transform:translateY(0)}80%{transform:translateY(-6px)}}
+  @keyframes wobble{25%{transform:rotate(-10deg)}75%{transform:rotate(10deg)}}
+  .speech{background:#fff;border-radius:20px;padding:10px 14px;font-size:18px;position:relative;flex:1;box-shadow:0 4px 0 #d9c9ff}
+  .confetti{position:fixed;width:12px;height:12px;top:-20px;z-index:50;border-radius:3px;pointer-events:none;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+  .result-stars{font-size:54px;text-align:center;letter-spacing:6px}
+  .learn h3{margin:4px 0}
+  .learn p{margin:6px 0;font-size:18px}
+  .hidden{display:none}
+  footer{text-align:center;font-size:13px;margin:18px 0 6px;color:#2b2350aa}
+</style>
+</head>
+<body>
+<div class="cloud" style="width:140px;height:44px;top:60px;animation-duration:55s"></div>
+<div class="cloud" style="width:100px;height:34px;top:160px;animation-duration:70s;animation-delay:-30s"></div>
+<div class="cloud" style="width:170px;height:52px;top:20px;animation-duration:90s;animation-delay:-60s"></div>
+
+<div id="app">
+  <header>
+    <h1>🎵 Music Pals</h1>
+    <div class="stars">⭐ <span id="starCount">0</span></div>
+  </header>
+  <div id="screen"></div>
+  <footer>Tap to play sounds. Turn your volume up! 🔊</footer>
+</div>
+
+<script>
+"use strict";
+// ---------- tiny helpers ----------
+const $ = s => document.querySelector(s);
+const rnd = a => a[Math.floor(Math.random() * a.length)];
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const save = { get(k, d) { try { return JSON.parse(localStorage.getItem("mp_" + k)) ?? d; } catch { return d; } },
+               set(k, v) { try { localStorage.setItem("mp_" + k, JSON.stringify(v)); } catch {} } };
+
+// ---------- sound ----------
+let ctx = null;
+function audio() { if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); return ctx; }
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+function tone(midi, when = 0, dur = 0.7, vol = 0.25) {
+  const a = audio(), t = a.currentTime + when;
+  const g = a.createGain(); g.connect(a.destination);
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.exponentialRampToValueAtTime(vol, t + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  for (const [type, mult, v] of [["triangle", 1, 1], ["sine", 2, 0.25]]) {
+    const o = a.createOscillator(), og = a.createGain();
+    o.type = type; o.frequency.value = hz(midi) * mult; og.gain.value = v;
+    o.connect(og); og.connect(g); o.start(t); o.stop(t + dur + 0.05);
+  }
+}
+const chord = (notes, when = 0, dur = 1.2) => notes.forEach(n => tone(n, when, dur, 0.16));
+const yay = () => [72, 76, 79, 84].forEach((n, i) => tone(n, i * 0.08, 0.35, 0.18));
+const boop = () => { tone(55, 0, 0.25, 0.2); tone(52, 0.15, 0.35, 0.2); };
+
+// ---------- music data ----------
+const LETTERS = ["C", "D", "E", "F", "G", "A", "B"];
+const SEMI = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+// staff step 0 = E4 (bottom line of treble staff)
+function stepNote(s) { const i = 2 + s, l = LETTERS[((i % 7) + 7) % 7], oct = 4 + Math.floor(i / 7); return { letter: l, midi: 12 * (oct + 1) + SEMI[l] }; }
+
+// ---------- mascot (Bop the eighth note) ----------
+function mascotSVG(mood = "smile") {
+  const mouth = mood === "sad" ? "M38 92 Q46 84 54 92" : mood === "wow" ? "M42 88 a4 5 0 1 0 8 0 a4 5 0 1 0 -8 0" : "M36 86 Q46 98 56 86";
+  return `<svg class="mascot" viewBox="0 0 100 120" id="bop">
+    <rect x="62" y="8" width="8" height="78" rx="4" fill="#2b2350"/>
+    <path d="M70 8 Q96 20 88 46 Q86 30 70 28 Z" fill="#2b2350"/>
+    <ellipse cx="46" cy="86" rx="30" ry="24" fill="#9b6bff" stroke="#2b2350" stroke-width="4"/>
+    <circle cx="36" cy="80" r="5" fill="#2b2350"/><circle cx="56" cy="80" r="5" fill="#2b2350"/>
+    <circle cx="37.5" cy="78.5" r="1.8" fill="#fff"/><circle cx="57.5" cy="78.5" r="1.8" fill="#fff"/>
+    <circle cx="26" cy="90" r="5" fill="#ff7eb6" opacity=".7"/><circle cx="66" cy="90" r="5" fill="#ff7eb6" opacity=".7"/>
+    <path d="${mouth}" stroke="#2b2350" stroke-width="3.5" fill="${mood === "wow" ? "#2b2350" : "none"}" stroke-linecap="round"/>
+  </svg>`;
+}
+function bopReact(good) {
+  const holder = $("#bopHolder"); if (!holder) return;
+  holder.innerHTML = mascotSVG(good ? "smile" : "sad");
+  const m = $("#bop"); m.classList.add(good ? "happy" : "sad");
+}
+function confetti() {
+  const cols = ["#ff7eb6", "#ffd23f", "#3fa7ff", "#2ecc71", "#9b6bff", "#ff9f43"];
+  for (let i = 0; i < 40; i++) {
+    const c = document.createElement("div"); c.className = "confetti";
+    c.style.left = Math.random() * 100 + "vw"; c.style.background = rnd(cols);
+    c.style.animationDuration = 1.2 + Math.random() * 1.4 + "s"; c.style.animationDelay = Math.random() * .3 + "s";
+    document.body.appendChild(c); setTimeout(() => c.remove(), 3200);
+  }
+}
+
+// ---------- drawings ----------
+function staffSVG(step) {
+  const y = 140 - step * 10, x = 230;
+  let s = `<svg viewBox="0 0 360 200" width="360" height="200">`;
+  for (let i = 0; i < 5; i++) s += `<line x1="20" x2="340" y1="${60 + i * 20}" y2="${60 + i * 20}" stroke="#2b2350" stroke-width="3"/>`;
+  s += `<text x="22" y="152" font-size="118" font-family="serif" fill="#2b2350">𝄞</text>`;
+  for (let l = -2; l >= step; l -= 2) s += `<line x1="${x - 24}" x2="${x + 24}" y1="${140 - l * 10}" y2="${140 - l * 10}" stroke="#2b2350" stroke-width="3"/>`;
+  for (let l = 10; l <= step; l += 2) s += `<line x1="${x - 24}" x2="${x + 24}" y1="${140 - l * 10}" y2="${140 - l * 10}" stroke="#2b2350" stroke-width="3"/>`;
+  s += step < 4 ? `<line x1="${x + 13}" x2="${x + 13}" y1="${y}" y2="${y - 68}" stroke="#2b2350" stroke-width="4"/>`
+                : `<line x1="${x - 13}" x2="${x - 13}" y1="${y}" y2="${y + 68}" stroke="#2b2350" stroke-width="4"/>`;
+  s += `<ellipse cx="${x}" cy="${y}" rx="15" ry="10.5" transform="rotate(-20 ${x} ${y})" fill="#ff7eb6" stroke="#2b2350" stroke-width="3"/>`;
+  return s + `</svg>`;
+}
+function noteValueSVG(kind) {
+  const x = 150, y = 120, open = kind === "whole" || kind.includes("half");
+  let s = `<svg viewBox="0 0 300 180" width="300" height="180">`;
+  s += `<ellipse cx="${x}" cy="${y}" rx="${kind === "whole" ? 22 : 18}" ry="13" transform="rotate(-20 ${x} ${y})" fill="${open ? "#fff" : "#2b2350"}" stroke="#2b2350" stroke-width="5"/>`;
+  if (kind !== "whole") s += `<line x1="${x + 16}" x2="${x + 16}" y1="${y - 4}" y2="${y - 95}" stroke="#2b2350" stroke-width="5"/>`;
+  if (kind === "eighth") s += `<path d="M${x + 16} ${y - 95} Q${x + 50} ${y - 70} ${x + 40} ${y - 35} Q${x + 38} ${y - 60} ${x + 16} ${y - 65} Z" fill="#2b2350"/>`;
+  if (kind.startsWith("dotted")) s += `<circle cx="${x + 34}" cy="${y}" r="6" fill="#2b2350"/>`;
+  return s + `</svg>`;
+}
+
+// ---------- circle of fifths ----------
+const WHEEL = [
+  ["C", "Am", 0], ["G", "Em", 1], ["D", "Bm", 2], ["A", "F♯m", 3], ["E", "C♯m", 4], ["B", "G♯m", 5],
+  ["F♯", "D♯m", 6], ["D♭", "B♭m", -5], ["A♭", "Fm", -4], ["E♭", "Cm", -3], ["B♭", "Gm", -2], ["F", "Dm", -1],
+].map(([maj, min, acc]) => ({ maj, min, acc }));
+function wheelSVG({ hl = -1, hide = -1, hideMin = -1, plain = false }) {
+  const cx = 160, cy = 160, cols = ["#ff7eb6", "#ff9f43", "#ffd23f", "#b6e05a", "#2ecc71", "#3fd4c4", "#3fa7ff", "#6b8bff", "#9b6bff", "#c36bff", "#ff6bd5", "#ff5e7e"];
+  const pt = (r, a) => [cx + r * Math.sin(a), cy - r * Math.cos(a)];
+  let s = `<svg viewBox="0 0 320 320" width="300" height="300">`;
+  WHEEL.forEach((w, i) => {
+    const a0 = (i - .5) * Math.PI / 6, a1 = (i + .5) * Math.PI / 6;
+    const [x0, y0] = pt(150, a0), [x1, y1] = pt(150, a1), [x2, y2] = pt(62, a1), [x3, y3] = pt(62, a0);
+    s += `<path d="M${x0} ${y0} A150 150 0 0 1 ${x1} ${y1} L${x2} ${y2} A62 62 0 0 0 ${x3} ${y3} Z" fill="${cols[i]}" stroke="#fff" stroke-width="3" opacity="${hl < 0 || hl === i ? 1 : .55}"/>`;
+    const [mx, my] = pt(122, i * Math.PI / 6), [nx, ny] = pt(86, i * Math.PI / 6);
+    s += `<text x="${mx}" y="${my + 8}" text-anchor="middle" font-size="22" font-weight="bold" fill="#2b2350">${i === hide ? "?" : w.maj}</text>`;
+    s += `<text x="${nx}" y="${ny + 5}" text-anchor="middle" font-size="13" fill="#2b2350">${i === hideMin ? "?" : w.min}</text>`;
+    if (i === hl) { const [hx, hy] = pt(122, i * Math.PI / 6); s += `<circle cx="${hx}" cy="${hy}" r="21" fill="none" stroke="#2b2350" stroke-width="4"/>`; }
+  });
+  s += `<circle cx="${cx}" cy="${cy}" r="58" fill="#fff"/>`;
+  s += plain ? `<text x="${cx}" y="${cy + 10}" text-anchor="middle" font-size="34">🎡</text>`
+             : `<text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="14" fill="#2b2350">⬅️ ♭  ♯ ➡️</text><text x="${cx}" y="${cy + 16}" text-anchor="middle" font-size="12" fill="#2b2350">major outside</text><text x="${cx}" y="${cy + 30}" text-anchor="middle" font-size="12" fill="#2b2350">minor inside</text>`;
+  return s + `</svg>`;
+}
+
+// ---------- game modes ----------
+// Each mode: make(level) -> {prompt, html, choices, answer, play?, after?(correct)}
+// level goes 1 -> 3 as the round goes on.
+const INTERVALS = [
+  { n: "2nd", s: 2, song: "“Hap-py BIRTH-day” — the step from py to birth" },
+  { n: "3rd", s: 4, song: "“Oh when the SAINTS” — Oh to when" },
+  { n: "4th", s: 5, song: "“Here comes the bride” — Here to comes" },
+  { n: "5th", s: 7, song: "“Twin-kle, TWIN-kle” — kle to the 2nd twin" },
+  { n: "6th", s: 9, song: "“My Bonnie lies over the ocean” — My to Bon" },
+  { n: "Octave", s: 12, song: "“Some-WHERE over the rainbow” — Some to where" },
+];
+const NOTE_VALUES = [
+  { k: "whole", name: "Whole note", b: "4", lv: 1 }, { k: "half", name: "Half note", b: "2", lv: 1 },
+  { k: "quarter", name: "Quarter note", b: "1", lv: 1 }, { k: "eighth", name: "Eighth note", b: "½", lv: 2 },
+  { k: "dotted half", name: "Dotted half note", b: "3", lv: 3 }, { k: "dotted quarter", name: "Dotted quarter note", b: "1½", lv: 3 },
+];
+
+const MODES = [
+  {
+    id: "staff", icon: "🎼", title: "Note Detective", color: "#ff7eb6",
+    desc: "Read notes on the staff",
+    learn: `<h3>The treble staff has 5 lines 🎼</h3>
+      <p><b>Lines</b> (bottom to top): <b>E G B D F</b>, “<b>E</b>very <b>G</b>ood <b>B</b>ird <b>D</b>oes <b>F</b>ly”.</p>
+      <p><b>Spaces</b> (bottom to top) spell <b>F A C E</b>, just like your face! 😊</p>
+      <p>Notes above or below the staff use little extra lines called <b>ledger lines</b>. Middle C sits on one just below.</p>`,
+    make(level) {
+      const pools = { 1: [0, 2, 4, 6, 8], 2: [0, 1, 2, 3, 4, 5, 6, 7, 8], 3: [-2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] };
+      const step = rnd(pools[level]), n = stepNote(step);
+      const kind = step < 0 || step > 8 ? "with a ledger line or just outside the staff" : step % 2 === 0 ? "on a line (E G B D F)" : "in a space (F A C E)";
+      return { prompt: "What note is this?", html: staffSVG(step), choices: LETTERS, answer: n.letter,
+               play: () => tone(n.midi), explain: `It's <b>${n.letter}</b>, ${kind}.` };
+    }
+  },
+  {
+    id: "piano", icon: "🎹", title: "Piano Pop", color: "#3fa7ff",
+    desc: "Find notes on the piano",
+    learn: `<h3>Find your way on the piano 🎹</h3>
+      <p>Look for the <b>groups of 2 and 3 black keys</b>.</p>
+      <p><b>C</b> is the white key just left of the <b>2 black keys</b>. <b>F</b> is just left of the <b>3 black keys</b>.</p>
+      <p>A <b>sharp ♯</b> is one key higher (to the right). A <b>flat ♭</b> is one key lower (to the left).</p>`,
+    make(level) {
+      const pools = { 1: ["C", "D", "E", "F", "G"], 2: LETTERS,
+                      3: ["C♯", "D♭", "E♭", "F♯", "G♯", "A♭", "B♭", "D♯", "A♯", "G♭"] };
+      const name = rnd(pools[level]);
+      return { prompt: `Tap the key: <span style="font-size:40px;color:#3fa7ff">${name}</span>`, piano: true, answer: name,
+               explain: level === 3 ? `${name[1] === "♯" ? "Sharp = one key to the right" : "Flat = one key to the left"} of ${name[0]}.` : `${name}: C sits just left of the 2 black keys, then count up D E F G A B.` };
+    }
+  },
+  {
+    id: "updown", icon: "🎈", title: "Up or Down?", color: "#ff9f43",
+    desc: "Train your ears: higher or lower?",
+    learn: `<h3>High and low sounds 🎈</h3>
+      <p><b>Pitch</b> means how high or low a sound is.</p>
+      <p>A bird tweeting 🐦 is <b>high</b>. A big bear growling 🐻 is <b>low</b>.</p>
+      <p>Listen to two notes. Did the second one go <b>up</b> like a balloon or <b>down</b> like a slide?</p>`,
+    make(level) {
+      const gap = { 1: [7, 12], 2: [3, 4, 5], 3: [1, 2] }[level];
+      const a = 55 + Math.floor(Math.random() * 18), up = Math.random() < .5, b = a + (up ? 1 : -1) * rnd(gap);
+      return { prompt: "Is the second note higher or lower?", html: `<div class="big" style="font-size:80px;text-align:center">🎈❓</div>`,
+               choices: ["⬆️ Higher", "⬇️ Lower"], answer: up ? "⬆️ Higher" : "⬇️ Lower",
+               play: () => { tone(a, 0, .6); tone(b, .75, .8); }, explain: `It went <b>${up ? "up" : "down"}</b> by ${Math.abs(b - a)} piano key${Math.abs(b - a) > 1 ? "s" : ""}.` };
+    }
+  },
+  {
+    id: "mood", icon: "🌞", title: "Happy or Sad?", color: "#ffd23f", dark: true,
+    desc: "Major and minor chords",
+    learn: `<h3>Chords have feelings 🌞🌧️</h3>
+      <p>A <b>chord</b> is 3 or more notes played together.</p>
+      <p><b>Major</b> chords sound bright and <b>happy</b> 🌞. <b>Minor</b> chords sound darker and <b>sad</b> 🌧️.</p>
+      <p>The only difference is the middle note: in minor it's one key <b>lower</b>.</p>`,
+    make(level) {
+      const root = 55 + Math.floor(Math.random() * 10), major = Math.random() < .5;
+      let notes = [root, root + (major ? 4 : 3), root + 7];
+      if (level === 3 && Math.random() < .6) notes = Math.random() < .5 ? [notes[1], notes[2], notes[0] + 12] : [notes[2] - 12, notes[0], notes[1]];
+      const play = level === 1 ? () => chord(notes) : () => { notes.forEach((n, i) => tone(n, i * .28, .8, .2)); chord(notes, .95); };
+      return { prompt: "Does this chord sound happy or sad?", html: `<div style="font-size:80px;text-align:center">🌞 / 🌧️</div>`,
+               choices: ["🌞 Happy (major)", "🌧️ Sad (minor)"], answer: major ? "🌞 Happy (major)" : "🌧️ Sad (minor)", play,
+               explain: major ? "That was <b>major</b>: bright and happy!" : "That was <b>minor</b>: the middle note is one key lower, so it sounds sad." };
+    }
+  },
+  {
+    id: "interval", icon: "🪜", title: "Note Ladder", color: "#9b6bff",
+    desc: "How far apart are two notes?",
+    learn: `<h3>Intervals are steps between notes 🪜</h3>
+      <p>The distance from one note to another is called an <b>interval</b>.</p>
+      ${INTERVALS.map(i => `<p><b>${i.n}:</b> ${i.song}</p>`).join("")}
+      <p>Sing the song in your head to match the jump!</p>`,
+    make(level) {
+      const sets = { 1: ["2nd", "5th", "Octave"], 2: ["2nd", "3rd", "4th", "5th", "Octave"], 3: INTERVALS.map(i => i.n) };
+      const opts = INTERVALS.filter(i => sets[level].includes(i.n)), pick = rnd(opts);
+      const a = 57 + Math.floor(Math.random() * 8);
+      return { prompt: "Which jump did you hear?", html: `<div style="font-size:80px;text-align:center">🪜</div>`,
+               choices: opts.map(i => i.n), answer: pick.n,
+               play: () => { tone(a, 0, .6); tone(a + pick.s, .7, .9); },
+               explain: `That was a <b>${pick.n}</b>. Think ${pick.song}.` };
+    }
+  },
+  {
+    id: "beats", icon: "🥁", title: "Beat Counter", color: "#2ecc71",
+    desc: "How long does each note last?",
+    learn: `<h3>Notes have different lengths 🥁</h3>
+      <p><b>Whole note</b> (empty, no stem) = 4 beats. <b>Half note</b> (empty, with stem) = 2 beats.</p>
+      <p><b>Quarter note</b> (filled in) = 1 beat. <b>Eighth note</b> (with a flag) = ½ beat.</p>
+      <p>A <b>dot</b> adds half again: dotted half = 2 + 1 = <b>3</b>, dotted quarter = 1 + ½ = <b>1½</b>.</p>`,
+    make(level) {
+      const pool = NOTE_VALUES.filter(v => v.lv <= level), v = rnd(pool);
+      const choices = [...new Set(pool.map(p => p.b))].sort((x, y) => parseFloat(x.replace("½", ".5").replace(/^\./, "0.")) - parseFloat(y.replace("½", ".5").replace(/^\./, "0.")));
+      const beats = { "4": 4, "2": 2, "1": 1, "½": .5, "3": 3, "1½": 1.5 }[v.b];
+      return { prompt: "How many beats does this note get?", html: noteValueSVG(v.k), choices, answer: v.b,
+               play: () => { for (let i = 0; i < Math.ceil(beats); i++) tone(84, i * .5, .08, .12); tone(67, 0, beats * .5, .2); },
+               explain: `A <b>${v.name.toLowerCase()}</b> gets <b>${v.b}</b> beat${v.b === "1" || v.b === "½" ? "" : "s"}.` };
+    }
+  },
+  {
+    id: "fifths", icon: "🎡", title: "Fifths Wheel", color: "#ff5e9a",
+    desc: "Spin the Circle of Fifths",
+    learn: `<h3>The Circle of Fifths is a music clock 🎡</h3>
+      <p>All 12 keys sit around it like hours on a clock. <b>C</b> is at the top with <b>no sharps or flats</b>.</p>
+      <p>Go <b>clockwise ➡️</b> and each step is 5 notes up, adding <b>one sharp ♯</b>: C, G, D, A, E, B, F♯.</p>
+      <p>Go <b>counter-clockwise ⬅️</b> and each step adds <b>one flat ♭</b>: C, F, B♭, E♭, A♭, D♭.</p>
+      <p>The inside ring shows each key's <b>relative minor</b>, its sad twin with the same sharps or flats. Count 3 piano keys down from the major to find it (C ➜ A minor).</p>
+      ${wheelSVG({})}`,
+    make(level) {
+      const i = Math.floor(Math.random() * 12), k = WHEEL[i], cnt = n => n === 0 ? "No ♯ or ♭" : `${Math.abs(n)} ${n > 0 ? "sharp" : "flat"}${Math.abs(n) > 1 ? "s" : ""}`;
+      const four = (ans, pool) => shuffle([ans, ...shuffle(pool.filter(x => x !== ans)).slice(0, 3)]);
+      const playKey = () => { const r = 53 + ((SEMI[k.maj[0]] + (k.maj[1] === "♯" ? 1 : k.maj[1] === "♭" ? -1 : 0) - 5 + 12) % 12); chord([r, r + 4, r + 7]); };
+      const type = level === 1 ? rnd(["cw", "ccw"]) : level === 2 ? "count" : rnd(["minor", "count2", "cw"]);
+      if (type === "cw" || type === "ccw") {
+        const j = (i + (type === "cw" ? 1 : 11)) % 12, a = WHEEL[j].maj;
+        return { prompt: `Go one step <b>${type === "cw" ? "clockwise ➡️" : "counter-clockwise ⬅️"}</b> from <b>${k.maj}</b>. Which key is there?`,
+                 html: wheelSVG({ hl: i, hide: j }), choices: four(a, WHEEL.map(w => w.maj)), answer: a, play: playKey,
+                 explain: `It's <b>${a}</b>. ${type === "cw" ? "Clockwise goes up a 5th and adds a sharp (or takes away a flat)." : "Counter-clockwise goes down a 5th and adds a flat (or takes away a sharp)."}` };
+      }
+      if (type === "count" || type === "count2") {
+        const a = cnt(k.acc), pool = [-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6].filter(n => Math.abs(n - k.acc) <= 3).map(cnt);
+        return { prompt: `How many sharps or flats are in <b>${k.maj} major</b>?`, html: wheelSVG({ hl: i, plain: type === "count2" }),
+                 choices: four(a, pool), answer: a, play: playKey,
+                 explain: k.acc === 0 ? "C major is all white keys, so no sharps or flats!" : `Count ${k.acc > 0 ? "clockwise" : "counter-clockwise"} from C: ${k.maj} is ${Math.abs(k.acc)} step${Math.abs(k.acc) > 1 ? "s" : ""} away, so <b>${a.toLowerCase()}</b>.` };
+      }
+      const a = k.min;
+      return { prompt: `What is the <b>relative minor</b> of <b>${k.maj} major</b>?`, html: wheelSVG({ hl: i, hideMin: i }),
+               choices: four(a, WHEEL.map(w => w.min)), answer: a, play: playKey,
+               explain: `<b>${a}</b> sits inside ${k.maj} on the wheel. It shares the same sharps and flats.` };
+    }
+  },
+];
+
+// ---------- screens ----------
+let stars = save.get("stars", 0);
+const updStars = () => $("#starCount").textContent = stars;
+updStars();
+
+function home() {
+  const best = save.get("best", {});
+  $("#screen").innerHTML = `
+    <div class="card row" style="flex-wrap:nowrap">
+      <div id="bopHolder">${mascotSVG("smile")}</div>
+      <div class="speech">Hi! I'm <b>Bop</b> the music note! 🎶 Pick a game and let's learn music together. Every round gets a little harder as you go!</div>
+    </div>
+    <div class="grid">
+      ${MODES.map(m => `<button class="mode" style="background:${m.color};${m.dark ? "color:#2b2350" : ""}" data-id="${m.id}">
+        <div class="big">${m.icon}</div><div class="t">${m.title}</div><div class="d">${m.desc}</div>
+        <div class="best">${best[m.id] ? "Best: " + "⭐".repeat(best[m.id]) : "New!"}</div></button>`).join("")}
+    </div>`;
+  document.querySelectorAll(".mode").forEach(b => b.onclick = () => { audio(); learn(MODES.find(m => m.id === b.dataset.id)); });
+}
+
+function learn(mode) {
+  $("#screen").innerHTML = `
+    <div class="card learn">
+      <div class="row" style="flex-wrap:nowrap"><div id="bopHolder">${mascotSVG("wow")}</div>
+      <div>${mode.learn}</div></div>
+      <div class="center" style="margin-top:10px">
+        <button class="btn ghost" id="back">🏠 Home</button>
+        <button class="btn" style="background:${mode.color};${mode.dark ? "color:#2b2350" : ""}" id="go">Let's play! ▶</button>
+      </div>
+    </div>`;
+  $("#back").onclick = home; $("#go").onclick = () => play(mode);
+}
+
+const ROUND = 10;
+async function play(mode) {
+  let score = 0;
+  for (let q = 0; q < ROUND; q++) {
+    const level = q < 3 ? 1 : q < 7 ? 2 : 3;
+    const Q = mode.make(level);
+    const ok = await ask(mode, Q, q, score, level);
+    if (ok === null) return home();
+    if (ok) score++;
+  }
+  finish(mode, score);
+}
+
+function ask(mode, Q, q, score, level) {
+  return new Promise(resolve => {
+    $("#screen").innerHTML = `
+      <div class="card">
+        <div class="row"><b>${mode.icon} ${mode.title}</b><span>Level ${"🔥".repeat(level)} · ${q + 1}/${ROUND}</span></div>
+        <div class="bar"><div style="width:${q / ROUND * 100}%"></div></div>
+        <div class="row" style="flex-wrap:nowrap;align-items:flex-start">
+          <div id="bopHolder">${mascotSVG("smile")}</div>
+          <div style="flex:1"><div class="q">${Q.prompt}</div>
+          <div class="center">${Q.html || ""}</div></div>
+        </div>
+        ${Q.play ? `<div class="center"><button class="btn small" style="background:var(--orange)" id="replay">🔊 Play sound</button></div>` : ""}
+        ${Q.piano ? pianoHTML(level === 1) : `<div class="answers">${Q.choices.map(c => `<button class="btn ans">${c}</button>`).join("")}</div>`}
+        <div class="tip" id="tip">${Q.piano ? "Tap a piano key!" : "Pick an answer!"}</div>
+        <div class="row" style="margin-top:6px"><button class="btn small ghost" id="quit">🏠 Quit</button><span>⭐ ${score}</span>
+          <button class="btn small hidden" id="next" style="background:var(--green)">Next ➜</button></div>
+      </div>`;
+    if (Q.play) { $("#replay").onclick = Q.play; setTimeout(Q.play, 300); }
+    $("#quit").onclick = () => resolve(null);
+    let done = false;
+    const answer = (el, val) => {
+      if (done) return; done = true;
+      const good = val === Q.answer || (Q.piano && enharm(val, Q.answer));
+      el.classList.add(good ? "right" : "wrong");
+      if (!good) {
+        document.querySelectorAll(Q.piano ? ".wk,.bk" : ".ans").forEach(b => {
+          if ((Q.piano && enharm(b.dataset.n, Q.answer)) || b.textContent === Q.answer) b.classList.add("right");
+        });
+      }
+      if (good) { yay(); confetti(); stars++; save.set("stars", stars); updStars(); } else boop();
+      bopReact(good);
+      $("#tip").innerHTML = (good ? rnd(["Great job! 🎉", "You got it! 🌟", "Super ears! 👂", "Wow! 🎶"]) : "Oops! Good try. 💜") + "<br>" + (Q.explain || "");
+      const nx = $("#next"); nx.classList.remove("hidden"); nx.onclick = () => resolve(good);
+    };
+    if (Q.piano) {
+      document.querySelectorAll(".wk,.bk").forEach(k => k.onclick = e => { e.stopPropagation(); tone(+k.dataset.m); answer(k, k.dataset.n); });
+    } else {
+      document.querySelectorAll(".ans").forEach(b => b.onclick = () => answer(b, b.textContent));
+    }
+  });
+}
+
+const ENH = { "C♯": "D♭", "D♯": "E♭", "F♯": "G♭", "G♯": "A♭", "A♯": "B♭" };
+const enharm = (a, b) => a === b || ENH[a] === b || ENH[b] === a;
+function pianoHTML(markC) {
+  const w = 100 / 7, blacks = [["C♯", 1, 61], ["D♯", 2, 63], ["F♯", 4, 66], ["G♯", 5, 68], ["A♯", 6, 70]];
+  let s = `<div class="piano">`;
+  LETTERS.forEach((l, i) => s += `<div class="wk" data-n="${l}" data-m="${60 + SEMI[l]}" style="left:${i * w}%;width:${w}%">${markC && l === "C" ? "C" : ""}</div>`);
+  blacks.forEach(([n, pos, m]) => s += `<div class="bk" data-n="${n}" data-m="${m}" style="left:${pos * w - w * .3}%;width:${w * .6}%"></div>`);
+  return s + `</div>`;
+}
+
+function finish(mode, score) {
+  const s3 = score >= 9 ? 3 : score >= 6 ? 2 : score >= 3 ? 1 : 0;
+  const best = save.get("best", {}); if (s3 > (best[mode.id] || 0)) { best[mode.id] = s3; save.set("best", best); }
+  if (s3 >= 2) { confetti(); setTimeout(confetti, 600); [60, 64, 67, 72, 67, 72].forEach((n, i) => tone(n, i * .15, .4, .2)); }
+  const msg = ["Keep practicing, you'll get it! 💪", "Nice work! 🎵", "Awesome job! 🌟", "PERFECT music star! 🏆"][s3];
+  $("#screen").innerHTML = `
+    <div class="card" style="text-align:center">
+      <div class="center" id="bopHolder">${mascotSVG(s3 ? "smile" : "sad")}</div>
+      <h2 style="margin:6px 0">${mode.icon} ${mode.title}</h2>
+      <div class="result-stars">${"⭐".repeat(s3)}${"☆".repeat(3 - s3)}</div>
+      <p style="font-size:24px;margin:6px">You got <b>${score}</b> out of ${ROUND}!</p>
+      <p style="font-size:20px">${msg}</p>
+      <button class="btn ghost" id="home">🏠 Home</button>
+      <button class="btn" style="background:${mode.color};${mode.dark ? "color:#2b2350" : ""}" id="again">🔁 Play again</button>
+    </div>`;
+  if (s3) bopReact(true);
+  $("#home").onclick = home; $("#again").onclick = () => play(mode);
+}
+
+home();
+</script>
+</body>
+</html>
